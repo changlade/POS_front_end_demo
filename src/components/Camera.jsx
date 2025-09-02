@@ -176,7 +176,7 @@ const BusinessRow = styled.div`
   justify-content: space-between;
 `
 
-const BusinessDetails = styled.div`
+const DetectedBusinessDetails = styled.div`
   flex: 1;
 `
 
@@ -878,7 +878,7 @@ function Camera() {
           {detectedBusiness && locationStatus === 'success' && (
             <DetectedBusinessCard>
               <BusinessRow>
-                <BusinessDetails>
+                <DetectedBusinessDetails>
                   <DetectedBusinessName>{detectedBusiness.name}</DetectedBusinessName>
                   <BusinessMeta>
                     <span>{detectedBusiness.type}</span>
@@ -890,7 +890,7 @@ function Camera() {
                       {detectedBusiness.isDanoneCustomer ? '✓ Customer' : '? Unknown'}
                     </span>
                   </BusinessMeta>
-                </BusinessDetails>
+                </DetectedBusinessDetails>
                 <OverrideButton onClick={() => setEditingBusiness(!editingBusiness)}>
                   {editingBusiness ? 'Cancel' : 'Change'}
                 </OverrideButton>
