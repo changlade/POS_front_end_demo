@@ -479,7 +479,28 @@ const ProductCard = styled.div`
   border: 2px solid #005EB8;
   border-radius: 12px;
   padding: 20px;
+  margin-bottom: 16px;
+  
+  &:last-child {
+    margin-bottom: 20px;
+  }
+`
+
+const ProductsContainer = styled.div`
+  max-height: 400px;
+  overflow-y: auto;
   margin-bottom: 20px;
+`
+
+const ProductCounter = styled.div`
+  background: #54AD18;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 16px;
 `
 
 const ProductHeader = styled.div`
@@ -1010,80 +1031,94 @@ function Camera() {
         </ProcessingModal>
       )}
       
-      {showResults && detectedProduct && (
+      {showResults && detectedProducts.length > 0 && (
         <ResultsModal>
           <ResultsContent>
             <ResultsHeader>
               <ResultsIcon size={48} />
-              <ResultsTitle>Water Product Detected!</ResultsTitle>
-              <ResultsSubtitle>Databricks AI has identified a Danone water product</ResultsSubtitle>
+              <ResultsTitle>
+                {detectedProducts.length === 1 ? 'Water Product Detected!' : `${detectedProducts.length} Water Products Detected!`}
+              </ResultsTitle>
+              <ResultsSubtitle>
+                Databricks AI has identified {detectedProducts.length === 1 ? 'a Danone water product' : `${detectedProducts.length} Danone water products`}
+              </ResultsSubtitle>
             </ResultsHeader>
             
-            <ProductCard>
-              <ProductHeader>
-                <ProductBrand>{detectedProduct.brand}</ProductBrand>
-                <ProductName>{detectedProduct.productName}</ProductName>
-              </ProductHeader>
-              
-              <ProductDetails>
-                <ProductDetail>
-                  <ProductLabel>Category:</ProductLabel><br />
-                  {detectedProduct.category}
-                </ProductDetail>
-                <ProductDetail>
-                  <ProductLabel>Size:</ProductLabel><br />
-                  {detectedProduct.size}
-                </ProductDetail>
-              </ProductDetails>
-              
-              {detectedProduct.description && (
-                <ProductDescription>
-                  {detectedProduct.description}
-                </ProductDescription>
-              )}
-              
-              <PriceSection>
-                <PriceHeader>
-                  <PriceLabel>
-                    <Eye size={16} />
-                    Detected Price
-                  </PriceLabel>
-                  {!editingPrice && (
-                    <EditButton onClick={handleEditPrice}>
-                      <Edit3 size={12} />
-                      Edit
-                    </EditButton>
+            {detectedProducts.length > 1 && (
+              <ProductCounter>
+                💧 {detectedProducts.length} different water products found
+              </ProductCounter>
+            )}
+            
+            <ProductsContainer>
+              {detectedProducts.map((product, index) => (
+                <ProductCard key={product.id}>
+                  <ProductHeader>
+                    <ProductBrand>{product.brand}</ProductBrand>
+                    <ProductName>{product.productName}</ProductName>
+                  </ProductHeader>
+                  
+                  <ProductDetails>
+                    <ProductDetail>
+                      <ProductLabel>Category:</ProductLabel><br />
+                      {product.category}
+                    </ProductDetail>
+                    <ProductDetail>
+                      <ProductLabel>Size:</ProductLabel><br />
+                      {product.size}
+                    </ProductDetail>
+                  </ProductDetails>
+                  
+                  {product.description && (
+                    <ProductDescription>
+                      {product.description}
+                    </ProductDescription>
                   )}
-                </PriceHeader>
-                
-                {editingPrice ? (
-                  <PriceEditSection>
-                    <PriceInput
-                      type="text"
-                      value={customPrice}
-                      onChange={(e) => setCustomPrice(e.target.value)}
-                      placeholder="Enter correct price (e.g., €4.50)"
-                      autoFocus
-                    />
-                    <ButtonGroup style={{ marginTop: '12px' }}>
-                      <SecondaryButton onClick={() => setEditingPrice(false)}>
-                        Cancel
-                      </SecondaryButton>
-                      <PrimaryButton onClick={handleSavePrice}>
-                        Save Price
-                      </PrimaryButton>
-                    </ButtonGroup>
-                  </PriceEditSection>
-                ) : (
-                  <>
-                    <DetectedPrice>{detectedProduct.detectedPrice}</DetectedPrice>
-                    <ConfidenceScore>
-                      Confidence: {Math.round(detectedProduct.confidence * 100)}%
-                    </ConfidenceScore>
-                  </>
-                )}
-              </PriceSection>
-            </ProductCard>
+                  
+                  <PriceSection>
+                    <PriceHeader>
+                      <PriceLabel>
+                        <Eye size={16} />
+                        Detected Price
+                      </PriceLabel>
+                      {!editingPrices[product.id] && (
+                        <EditButton onClick={() => handleEditPrice(product.id)}>
+                          <Edit3 size={12} />
+                          Edit
+                        </EditButton>
+                      )}
+                    </PriceHeader>
+                    
+                    {editingPrices[product.id] ? (
+                      <PriceEditSection>
+                        <PriceInput
+                          type="text"
+                          value={customPrices[product.id] || product.detectedPrice}
+                          onChange={(e) => handlePriceChange(product.id, e.target.value)}
+                          placeholder="Enter correct price (e.g., €4.50)"
+                          autoFocus
+                        />
+                        <ButtonGroup style={{ marginTop: '12px' }}>
+                          <SecondaryButton onClick={() => setEditingPrices(prev => ({ ...prev, [product.id]: false }))}>
+                            Cancel
+                          </SecondaryButton>
+                          <PrimaryButton onClick={() => handleSavePrice(product.id)}>
+                            Save Price
+                          </PrimaryButton>
+                        </ButtonGroup>
+                      </PriceEditSection>
+                    ) : (
+                      <>
+                        <DetectedPrice>{product.detectedPrice}</DetectedPrice>
+                        <ConfidenceScore>
+                          Confidence: {Math.round(product.confidence * 100)}%
+                        </ConfidenceScore>
+                      </>
+                    )}
+                  </PriceSection>
+                </ProductCard>
+              ))}
+            </ProductsContainer>
             
             <ButtonGroup>
               <SecondaryButton onClick={handleCloseResults}>
@@ -1106,9 +1141,13 @@ function Camera() {
             <SuccessTitle>Success!</SuccessTitle>
             <SuccessText>
               Your photo and price data have been saved successfully!
-              {detectedProduct && (
+              {detectedProducts.length > 0 && (
                 <><br /><br />
-                <strong>{detectedProduct.productName}</strong> at <strong>{detectedProduct.detectedPrice}</strong>
+                {detectedProducts.length === 1 ? (
+                  <><strong>{detectedProducts[0].productName}</strong> at <strong>{detectedProducts[0].detectedPrice}</strong></>
+                ) : (
+                  <><strong>{detectedProducts.length} water products</strong> detected and saved with prices</>
+                )}
                 </>
               )}
             </SuccessText>
