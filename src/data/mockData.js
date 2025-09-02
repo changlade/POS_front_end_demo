@@ -10,7 +10,7 @@ export const parisBusinesses = [
     coordinates: [48.8542, 2.3320],
     isDanoneCustomer: true,
     lastPhotoDate: new Date('2024-01-10'),
-    menuItems: ["Activia Yogurt", "Evian Water", "Two Good Yogurt"]
+    menuItems: ["Evian 1.5L", "Evian 500ml", "Badoit Sparkling"]
   },
   {
     id: 2,
@@ -20,7 +20,7 @@ export const parisBusinesses = [
     coordinates: [48.8606, 2.3080],
     isDanoneCustomer: true,
     lastPhotoDate: new Date('2024-01-05'),
-    menuItems: ["Activia", "Danette"]
+    menuItems: ["Evian Natural", "Volvic 500ml"]
   },
   {
     id: 3,
@@ -30,7 +30,7 @@ export const parisBusinesses = [
     coordinates: [48.8606, 2.3622],
     isDanoneCustomer: true,
     lastPhotoDate: new Date('2024-01-15'),
-    menuItems: ["Two Good", "Evian"]
+    menuItems: ["Evian Glass", "Badoit 330ml"]
   },
   {
     id: 4,
@@ -40,7 +40,7 @@ export const parisBusinesses = [
     coordinates: [48.8577, 2.3590],
     isDanoneCustomer: true,
     lastPhotoDate: new Date('2023-12-20'),
-    menuItems: ["Evian Water"]
+    menuItems: ["Evian 500ml"]
   },
   {
     id: 5,
@@ -50,7 +50,7 @@ export const parisBusinesses = [
     coordinates: [48.8708, 2.3628],
     isDanoneCustomer: true,
     lastPhotoDate: new Date('2024-01-12'),
-    menuItems: ["Activia Yogurt", "Danette"]
+    menuItems: ["Volvic 1.5L", "Font Vella"]
   },
   
   // Unknown status businesses (question marks)
@@ -228,52 +228,107 @@ export const recentActivities = [
   }
 ]
 
-// Mock product detection results from Databricks processing
+// Mock product detection results from Databricks processing - Danone Waters Only
 export const mockProductDetections = [
   {
-    productName: "Activia Strawberry Yogurt",
-    detectedPrice: "€4.50",
-    confidence: 0.92,
-    category: "Dairy",
-    brand: "Danone",
-    size: "4x125g"
-  },
-  {
-    productName: "Evian Natural Water",
+    productName: "Evian Natural Mineral Water",
     detectedPrice: "€2.80",
     confidence: 0.95,
     category: "Water",
     brand: "Danone",
-    size: "1.5L"
+    size: "1.5L",
+    description: "Premium natural mineral water from the French Alps"
   },
   {
-    productName: "Two Good Greek Yogurt",
+    productName: "Evian Natural Mineral Water",
+    detectedPrice: "€1.20",
+    confidence: 0.93,
+    category: "Water",
+    brand: "Danone",
+    size: "500ml",
+    description: "Premium natural mineral water from the French Alps"
+  },
+  {
+    productName: "Volvic Natural Volcanic Water",
+    detectedPrice: "€2.20",
+    confidence: 0.91,
+    category: "Water",
+    brand: "Danone",
+    size: "1.5L",
+    description: "Natural volcanic water from Auvergne, France"
+  },
+  {
+    productName: "Volvic Natural Volcanic Water",
+    detectedPrice: "€1.10",
+    confidence: 0.89,
+    category: "Water",
+    brand: "Danone",
+    size: "500ml",
+    description: "Natural volcanic water from Auvergne, France"
+  },
+  {
+    productName: "Badoit Sparkling Natural Mineral Water",
     detectedPrice: "€3.20",
-    confidence: 0.88,
-    category: "Dairy",
-    brand: "Danone",
-    size: "150g"
-  },
-  {
-    productName: "Danette Chocolate",
-    detectedPrice: "€1.95",
-    confidence: 0.90,
-    category: "Dessert",
-    brand: "Danone",
-    size: "125g"
-  },
-  {
-    productName: "Actimel Multifruit",
-    detectedPrice: "€5.40",
     confidence: 0.87,
-    category: "Dairy",
+    category: "Water",
     brand: "Danone",
-    size: "8x100ml"
+    size: "1L",
+    description: "Naturally sparkling mineral water from Saint-Galmier"
+  },
+  {
+    productName: "Badoit Sparkling Natural Mineral Water",
+    detectedPrice: "€1.80",
+    confidence: 0.90,
+    category: "Water",
+    brand: "Danone",
+    size: "330ml",
+    description: "Naturally sparkling mineral water from Saint-Galmier"
+  },
+  {
+    productName: "Font Vella Natural Water",
+    detectedPrice: "€1.90",
+    confidence: 0.86,
+    category: "Water",
+    brand: "Danone",
+    size: "1.5L",
+    description: "Natural water from the Montseny mountains, Spain"
+  },
+  {
+    productName: "Evian Glass Bottle",
+    detectedPrice: "€4.50",
+    confidence: 0.92,
+    category: "Water",
+    brand: "Danone",
+    size: "750ml",
+    description: "Premium Evian in elegant glass bottle"
   }
 ]
 
-// Function to get random product detection
+// Function to get random product detection - can return multiple products
 export const getRandomProductDetection = () => {
+  // Randomly decide how many products to detect (1-4 products)
+  const numProducts = Math.floor(Math.random() * 4) + 1
+  const selectedProducts = []
+  const usedIndexes = new Set()
+  
+  for (let i = 0; i < numProducts; i++) {
+    let randomIndex
+    do {
+      randomIndex = Math.floor(Math.random() * mockProductDetections.length)
+    } while (usedIndexes.has(randomIndex))
+    
+    usedIndexes.add(randomIndex)
+    selectedProducts.push({
+      ...mockProductDetections[randomIndex],
+      id: `product_${i + 1}` // Add unique ID for editing
+    })
+  }
+  
+  return selectedProducts
+}
+
+// Function to get single random product (for backward compatibility)
+export const getSingleRandomProductDetection = () => {
   return mockProductDetections[Math.floor(Math.random() * mockProductDetections.length)]
 }
 

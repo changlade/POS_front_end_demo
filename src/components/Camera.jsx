@@ -513,6 +513,14 @@ const ProductDetails = styled.div`
   margin-bottom: 16px;
 `
 
+const ProductDescription = styled.div`
+  font-size: 13px;
+  color: #666;
+  font-style: italic;
+  margin-bottom: 16px;
+  line-height: 1.4;
+`
+
 const ProductDetail = styled.div`
   font-size: 14px;
   color: #666;
@@ -639,9 +647,9 @@ function Camera() {
   const [processingStep, setProcessingStep] = useState('')
   const [progress, setProgress] = useState(0)
   const [showResults, setShowResults] = useState(false)
-  const [detectedProduct, setDetectedProduct] = useState(null)
-  const [editingPrice, setEditingPrice] = useState(false)
-  const [customPrice, setCustomPrice] = useState('')
+  const [detectedProducts, setDetectedProducts] = useState([])
+  const [editingPrices, setEditingPrices] = useState({})
+  const [customPrices, setCustomPrices] = useState({})
   const [detectedBusiness, setDetectedBusiness] = useState(null)
   const [editingBusiness, setEditingBusiness] = useState(false)
   const [userLocation, setUserLocation] = useState(null)
@@ -744,17 +752,23 @@ function Camera() {
     await simulateProgress(20, 60, 2000)
     
     // Step 3: OCR and product detection
-    setProcessingStep('Detecting Danone products...')
+    setProcessingStep('Scanning for multiple Danone water products...')
     await simulateProgress(60, 85, 1500)
     
     // Step 4: Price extraction
-    setProcessingStep('Extracting price information...')
+    setProcessingStep('Extracting prices for detected products...')
     await simulateProgress(85, 100, 1000)
     
-    // Generate detection results
-    const product = getRandomProductDetection()
-    setDetectedProduct(product)
-    setCustomPrice(product.detectedPrice)
+    // Generate detection results for multiple products
+    const products = getRandomProductDetection()
+    setDetectedProducts(products)
+    
+    // Initialize custom prices for all products
+    const initialPrices = {}
+    products.forEach(product => {
+      initialPrices[product.id] = product.detectedPrice
+    })
+    setCustomPrices(initialPrices)
     
     setProcessing(false)
     setShowResults(true)
@@ -792,9 +806,9 @@ function Camera() {
   
   const handleCloseResults = () => {
     setShowResults(false)
-    setDetectedProduct(null)
-    setEditingPrice(false)
-    setCustomPrice('')
+    setDetectedProducts([])
+    setEditingPrices({})
+    setCustomPrices({})
   }
   
   const handleConfirmResults = () => {
@@ -804,9 +818,9 @@ function Camera() {
     setTimeout(() => {
       setSelectedPhoto(null)
       setSelectedBusinessId('')
-      setDetectedProduct(null)
-      setEditingPrice(false)
-      setCustomPrice('')
+      setDetectedProducts([])
+      setEditingPrices({})
+      setCustomPrices({})
       setEditingBusiness(false)
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
@@ -814,18 +828,25 @@ function Camera() {
     }, 100)
   }
   
-  const handleEditPrice = () => {
-    setEditingPrice(true)
+  const handleEditPrice = (productId) => {
+    setEditingPrices(prev => ({ ...prev, [productId]: true }))
   }
   
-  const handleSavePrice = () => {
-    if (detectedProduct && customPrice) {
-      setDetectedProduct({
-        ...detectedProduct,
-        detectedPrice: customPrice
-      })
+  const handleSavePrice = (productId) => {
+    if (customPrices[productId]) {
+      setDetectedProducts(prev => 
+        prev.map(product => 
+          product.id === productId 
+            ? { ...product, detectedPrice: customPrices[productId] }
+            : product
+        )
+      )
     }
-    setEditingPrice(false)
+    setEditingPrices(prev => ({ ...prev, [productId]: false }))
+  }
+  
+  const handlePriceChange = (productId, price) => {
+    setCustomPrices(prev => ({ ...prev, [productId]: price }))
   }
 
   const isSubmitDisabled = !selectedPhoto || (!detectedBusiness && !selectedBusinessId)
@@ -994,8 +1015,8 @@ function Camera() {
           <ResultsContent>
             <ResultsHeader>
               <ResultsIcon size={48} />
-              <ResultsTitle>Product Detected!</ResultsTitle>
-              <ResultsSubtitle>Databricks AI has analyzed your menu photo</ResultsSubtitle>
+              <ResultsTitle>Water Product Detected!</ResultsTitle>
+              <ResultsSubtitle>Databricks AI has identified a Danone water product</ResultsSubtitle>
             </ResultsHeader>
             
             <ProductCard>
@@ -1014,6 +1035,12 @@ function Camera() {
                   {detectedProduct.size}
                 </ProductDetail>
               </ProductDetails>
+              
+              {detectedProduct.description && (
+                <ProductDescription>
+                  {detectedProduct.description}
+                </ProductDescription>
+              )}
               
               <PriceSection>
                 <PriceHeader>

@@ -251,13 +251,13 @@ function MapView() {
                     
                     {business.menuItems.length > 0 && (
                       <MenuItems>
-                        Danone products: {business.menuItems.join(', ')}
+                        Danone waters: {business.menuItems.join(', ')}
                       </MenuItems>
                     )}
                     
                     {!business.isDanoneCustomer && (
                       <MenuItems style={{ color: '#F88806' }}>
-                        📸 Take a photo to discover products! (+100 pts)
+                        💧 Take a photo to discover water products! (+100 pts)
                       </MenuItems>
                     )}
                   </PopupContent>
